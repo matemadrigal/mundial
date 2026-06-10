@@ -7,6 +7,55 @@ import { scorePrediction } from '@/lib/scoring';
 
 const FINISHED = ['FT', 'AET', 'PEN'];
 
+function TodaySummary({ data }) {
+  const today = dayKey(new Date().toISOString());
+  const finishedToday = (data.matches || []).filter((m) =>
+    dayKey(m.kickoff) === today && FINISHED.includes(m.status) && m.home_goals != null
+  );
+  if (finishedToday.length === 0) return null;
+
+  // Suma de puntos por usuario en los partidos jugados hoy
+  const totals = new Map();
+  for (const u of data.users || []) totals.set(u.id, { user: u, pts: 0, hits: 0 });
+
+  for (const m of finishedToday) {
+    const preds = data.others[m.id] || [];
+    for (const p of preds) {
+      const r = scorePrediction(p, m);
+      const row = totals.get(p.user_id);
+      if (row) {
+        row.pts += r.points;
+        if (r.points > 0) row.hits++;
+      }
+    }
+  }
+
+  const rows = Array.from(totals.values()).sort((a, b) => b.pts - a.pts);
+
+  return (
+    <section className="ticket mx-4 mt-3 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="eyebrow">Resumen del día</div>
+          <h2 className="display text-base mt-0.5">Hoy · {finishedToday.length} jugado{finishedToday.length > 1 ? 's' : ''}</h2>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {rows.map((r) => {
+          const isMe = r.user.id === data.me.id;
+          return (
+            <div key={r.user.id} className={`text-center p-2 rounded ${isMe ? 'bg-[#1c1c1c]' : ''}`}>
+              <div className="text-[10.5px] text-muted truncate">{r.user.name}</div>
+              <div className={`score-digits text-xl leading-none mt-1 ${r.pts > 0 ? 'text-yellow' : 'text-dim'}`}>{r.pts > 0 ? `+${r.pts}` : '0'}</div>
+              <div className="text-[9px] text-dim tracking-widest mt-1">{r.hits} ACIERTO{r.hits === 1 ? '' : 'S'}</div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function Team({ name, align = 'left' }) {
   return (
     <div className={`flex items-center gap-2.5 min-w-0 ${align === 'right' ? 'flex-row-reverse text-right' : ''}`}>
@@ -196,14 +245,16 @@ export default function Calendario() {
         ))}
       </div>
 
+      {filter === 'today' ? <TodaySummary data={data} /> : null}
+
       {empty ? (
         <div className="ticket m-4 p-6">
           <div className="eyebrow mb-2">SIN DATOS</div>
           <h2 className="display text-lg mb-2">No hay partidos cargados</h2>
           <p className="text-sm text-muted leading-relaxed">
             {data.apiConfigured
-              ? 'Sincronizando con API-Football. Recarga en unos segundos o pide al admin que ejecute «Sync completo» en su panel.'
-              : 'Falta la API key de fútbol. Cuando el admin añada APIFOOTBALL_KEY en Vercel, el calendario se cargará automáticamente.'}
+              ? 'Sincronizando con la API de partidos. Recarga en unos segundos o pide al admin que ejecute «Sync completo» en su panel.'
+              : 'Falta configurar la API de fútbol. Pide al admin que la active en Vercel.'}
           </p>
         </div>
       ) : (

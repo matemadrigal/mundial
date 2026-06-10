@@ -1,8 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { api, TopBar, BottomNav, Spinner, Avatar, Logout } from '@/components/ui';
 
 export default function Clasificacion() {
+  const router = useRouter();
   const [me, setMe] = useState(null);
   const [rows, setRows] = useState(null);
 
@@ -30,9 +32,11 @@ export default function Clasificacion() {
           const isMe = r.id === me.id;
           const isLeader = i === 0;
           return (
-            <div
+            <button
               key={r.id}
-              className={`ticket px-4 py-3 ${isMe ? '!border-yellow' : ''}`}
+              type="button"
+              onClick={() => router.push(`/u/${r.id}`)}
+              className={`ticket px-4 py-3 w-full text-left transition-colors hover:bg-surface2 ${isMe ? '!border-yellow' : ''}`}
             >
               <div className="flex items-center gap-3">
                 <div className={`mono text-base font-bold w-7 text-center ${isLeader ? 'text-yellow' : 'text-dim'}`}>
@@ -40,9 +44,10 @@ export default function Clasificacion() {
                 </div>
                 <Avatar name={r.name} me={isMe} />
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate">
+                  <div className="font-bold truncate flex items-center gap-1.5">
                     {r.name}
-                    {isMe ? <span className="text-dim text-xs font-normal ml-1.5">(tú)</span> : null}
+                    {isMe ? <span className="text-dim text-xs font-normal">(tú)</span> : null}
+                    <span className="text-dim text-[10px]">›</span>
                   </div>
                   <div className="text-[11px] text-dim mt-0.5">
                     {r.played} pron. puntuados · {r.exacts} exactos
@@ -58,7 +63,7 @@ export default function Clasificacion() {
                   </div>
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
