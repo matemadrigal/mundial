@@ -1,0 +1,63 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e6]
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]: Sala VAR
+        - heading "Panel admin" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Operador · Mateo
+      - button "Cerrar sesión" [ref=e13] [cursor=pointer]:
+        - img [ref=e14]
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: Sistema
+        - heading "Sincronización" [level=2] [ref=e19]
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - term [ref=e22]: Último sync
+            - definition [ref=e23]: Miércoles, 10 de junio 23:52 (full)
+          - generic [ref=e24]:
+            - term [ref=e25]: Cuota API hoy
+            - definition [ref=e26]: ∞/∞
+        - generic [ref=e27]:
+          - button "Sync rápido" [disabled] [ref=e28]
+          - button "…" [disabled] [ref=e88] [cursor=pointer]
+        - paragraph [ref=e30]: El sync rápido se ejecuta automáticamente cuando alguien navega durante el horario de partidos. Usa el completo en la primera carga y cuando aparezcan nuevos cruces de eliminatoria. La fase de enriquecimiento añade letra real de grupo + ciudad oficial.
+      - generic [ref=e31]:
+        - generic [ref=e32]: Operaciones manuales
+        - heading "Corregir partido" [level=2] [ref=e33]
+        - button "México México — Sudáfrica Sudáfrica NS" [ref=e36] [cursor=pointer]:
+          - generic [ref=e37]:
+            - img "México" [ref=e38]
+            - text: México
+            - generic [ref=e39]: —
+            - text: Sudáfrica
+            - img "Sudáfrica" [ref=e40]
+          - generic [ref=e41]: NS
+      - generic [ref=e42]:
+        - generic [ref=e43]: Cierre
+        - heading "Final del torneo" [level=2] [ref=e44]
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]: Campeón (nombre API, ej. Spain)
+            - textbox [ref=e48]
+          - generic [ref=e49]:
+            - generic [ref=e50]: Pichichi
+            - textbox [ref=e51]
+          - button "Guardar y aplicar al ranking" [ref=e52] [cursor=pointer]
+    - navigation [ref=e53]:
+      - button "Partidos" [ref=e54] [cursor=pointer]:
+        - img [ref=e57]
+        - generic [ref=e60]: Partidos
+      - button "Apuestas" [ref=e61] [cursor=pointer]:
+        - img [ref=e64]
+        - generic [ref=e67]: Apuestas
+      - button "Ranking" [ref=e68] [cursor=pointer]:
+        - img [ref=e71]
+        - generic [ref=e73]: Ranking
+      - button "Perfil" [ref=e74] [cursor=pointer]:
+        - img [ref=e77]
+        - generic [ref=e80]: Perfil
+      - button "Admin" [ref=e81] [cursor=pointer]:
+        - img [ref=e84]
+        - generic [ref=e87]: Admin

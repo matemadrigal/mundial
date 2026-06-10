@@ -1,0 +1,108 @@
+- generic [ref=e1]:
+  - alert [ref=e6]
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]: Apuestas
+        - heading "Mis predicciones" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Editable hasta el inicio de cada partido.
+      - button "Cerrar sesión" [ref=e13] [cursor=pointer]:
+        - img [ref=e14]
+    - generic [ref=e16]:
+      - button "Mis partidos" [ref=e17] [cursor=pointer]
+      - button "Globales" [active] [ref=e18] [cursor=pointer]
+    - generic [ref=e302]:
+      - generic [ref=e303]:
+        - generic [ref=e304]:
+          - generic [ref=e305]:
+            - generic [ref=e306]: Mercados
+            - heading "Apuestas del torneo" [level=2] [ref=e307]
+          - generic [ref=e308]: CIERRA EN 20H 45M
+        - generic [ref=e309]:
+          - generic [ref=e310]:
+            - generic [ref=e311]:
+              - generic [ref=e312]: Campeón del Mundial
+              - generic [ref=e313]: "+10"
+            - combobox [ref=e314]:
+              - option "— Selecciona equipo —"
+              - option "Australia"
+              - option "Bélgica"
+              - option "Bosnia-Herzegovina"
+              - option "Brasil"
+              - option "Canadá"
+              - option "Cabo Verde"
+              - option "Curaçao"
+              - option "Chequia"
+              - option "Ecuador"
+              - option "Egipto"
+              - option "Alemania"
+              - option "Haití"
+              - option "Costa de Marfil"
+              - option "Japón"
+              - option "México"
+              - option "Marruecos"
+              - option "Países Bajos"
+              - option "Paraguay"
+              - option "Catar"
+              - option "Arabia Saudí"
+              - option "Escocia"
+              - option "Sudáfrica"
+              - option "Corea del Sur"
+              - option "España" [selected]
+              - option "Suecia"
+              - option "Suiza"
+              - option "Túnez"
+              - option "Turquía"
+              - option "Estados Unidos"
+              - option "Uruguay"
+            - generic [ref=e315]:
+              - img "España" [ref=e316]
+              - generic [ref=e317]: España
+          - generic [ref=e318]:
+            - generic [ref=e319]:
+              - generic [ref=e320]: Máximo goleador
+              - generic [ref=e321]: "+5"
+            - textbox "Ej. Lamine Yamal" [ref=e322]: Mikel Oyarzabal
+          - button "Confirmar apuestas" [ref=e323] [cursor=pointer]
+      - generic [ref=e324]:
+        - generic [ref=e325]: Tarifa de premios
+        - heading "Sistema de puntuación" [level=2] [ref=e326]
+        - list [ref=e327]:
+          - listitem [ref=e328]:
+            - generic [ref=e329]: Resultado exacto
+            - generic [ref=e330]: "+3"
+          - listitem [ref=e331]:
+            - generic [ref=e332]: Acertar 1X2 (sin exacto)
+            - generic [ref=e333]: "+1"
+          - listitem [ref=e334]:
+            - generic [ref=e335]: Córners totales exactos
+            - generic [ref=e336]: "+2"
+          - listitem [ref=e337]:
+            - generic [ref=e338]: Córners ±2
+            - generic [ref=e339]: "+1"
+          - listitem [ref=e340]:
+            - generic [ref=e341]: Equipo con más tarjetas
+            - generic [ref=e342]: "+1"
+          - listitem [ref=e343]:
+            - generic [ref=e344]: Campeón del Mundial
+            - generic [ref=e345]: "+10"
+          - listitem [ref=e346]:
+            - generic [ref=e347]: Pichichi (máximo goleador)
+            - generic [ref=e348]: "+5"
+        - paragraph [ref=e349]: El resultado se evalúa al final del tiempo jugado (90' o 120'). Si hay penaltis, cuenta como empate para el 1X2. El exacto no suma además el 1X2. Tarjetas = amarillas + rojas por equipo.
+    - navigation [ref=e267]:
+      - button "Partidos" [ref=e268] [cursor=pointer]:
+        - img [ref=e271]
+        - generic [ref=e274]: Partidos
+      - button "Apuestas" [ref=e275] [cursor=pointer]:
+        - img [ref=e278]
+        - generic [ref=e281]: Apuestas
+      - button "Ranking" [ref=e282] [cursor=pointer]:
+        - img [ref=e285]
+        - generic [ref=e287]: Ranking
+      - button "Perfil" [ref=e288] [cursor=pointer]:
+        - img [ref=e291]
+        - generic [ref=e294]: Perfil
+      - button "Admin" [ref=e295] [cursor=pointer]:
+        - img [ref=e298]
+        - generic [ref=e301]: Admin
