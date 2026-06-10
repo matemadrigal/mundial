@@ -1,69 +1,88 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { api, fmtTime, fmtDayLong, dayKey, tournamentDay, TopBar, BottomNav, Spinner, Avatar, Logout } from '@/components/ui';
-import { PredictionForm, SHORT_LABEL } from '@/components/match';
+import { PredictionForm, SHORT_LABEL, MatchExtras } from '@/components/match';
 import { teamName, teamFlag, stageES } from '@/lib/teams';
 import { scorePrediction } from '@/lib/scoring';
 
 const FINISHED = ['FT', 'AET', 'PEN'];
 
+function tableFromMatches(teamSet, matchesIn, label, provisional) {
+  const teams = Array.from(teamSet);
+  const stats = Object.fromEntries(teams.map((t) => [t, { team: t, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, pts: 0 }]));
+  const decisive = matchesIn.filter((m) => m.home_goals != null && m.away_goals != null);
+  for (const m of decisive) {
+    const h = stats[m.home_team]; const a = stats[m.away_team];
+    h.pj++; a.pj++;
+    h.gf += m.home_goals; h.gc += m.away_goals;
+    a.gf += m.away_goals; a.gc += m.home_goals;
+    if (m.home_goals > m.away_goals) { h.g++; a.p++; h.pts += 3; }
+    else if (m.away_goals > m.home_goals) { a.g++; h.p++; a.pts += 3; }
+    else { h.e++; a.e++; h.pts++; a.pts++; }
+  }
+  const sorted = teams.map((t) => stats[t]).sort((x, y) =>
+    (y.pts - x.pts) || ((y.gf - y.gc) - (x.gf - x.gc)) || (y.gf - x.gf) || x.team.localeCompare(y.team)
+  );
+  return { teams: sorted, complete: teamSet.size === 4, played: matchesIn.length, label, provisional };
+}
+
 function buildGroupTables(matches) {
   const groupMatches = (matches || []).filter((m) =>
-    /group|jornada/i.test(m.stage || '') && m.home_team && m.away_team
+    /group|jornada|fase de grupos/i.test(m.stage || '') && m.home_team && m.away_team
   );
   if (groupMatches.length === 0) return [];
 
-  // Grafo de equipos que se han enfrentado en fase de grupos
-  const adj = new Map();
+  // 1) Si el sync ya enriqueció con letra real ("Group A - Jornada 1"), agrupamos por letra.
+  const byLetter = new Map();
+  const unlabeled = [];
   for (const m of groupMatches) {
-    if (!adj.has(m.home_team)) adj.set(m.home_team, new Set());
-    if (!adj.has(m.away_team)) adj.set(m.away_team, new Set());
-    adj.get(m.home_team).add(m.away_team);
-    adj.get(m.away_team).add(m.home_team);
+    const letter = (m.stage || '').match(/group\s+([A-L])\b/i)?.[1]?.toUpperCase();
+    if (letter) {
+      if (!byLetter.has(letter)) byLetter.set(letter, []);
+      byLetter.get(letter).push(m);
+    } else {
+      unlabeled.push(m);
+    }
   }
 
-  // Componentes conexas: cada una es un grupo
-  const visited = new Set();
-  const groups = [];
-  for (const team of adj.keys()) {
-    if (visited.has(team)) continue;
-    const comp = new Set();
-    const queue = [team];
-    while (queue.length) {
-      const t = queue.shift();
-      if (visited.has(t)) continue;
-      visited.add(t);
-      comp.add(t);
-      for (const n of adj.get(t) || []) if (!visited.has(n)) queue.push(n);
-    }
-    groups.push(comp);
+  const tables = [];
+  for (const [letter, ms] of Array.from(byLetter.entries()).sort(([a], [b]) => a.localeCompare(b))) {
+    const teamSet = new Set();
+    for (const m of ms) { teamSet.add(m.home_team); teamSet.add(m.away_team); }
+    tables.push(tableFromMatches(teamSet, ms, letter, false));
   }
 
-  // Calcular tabla por grupo
-  const tables = groups.map((teamSet) => {
-    const teams = Array.from(teamSet);
-    const stats = Object.fromEntries(teams.map((t) => [t, { team: t, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, pts: 0 }]));
-    const played = groupMatches.filter((m) =>
-      teamSet.has(m.home_team) && teamSet.has(m.away_team) && m.home_goals != null && m.away_goals != null
-    );
-    for (const m of played) {
-      const h = stats[m.home_team];
-      const a = stats[m.away_team];
-      h.pj++; a.pj++;
-      h.gf += m.home_goals; h.gc += m.away_goals;
-      a.gf += m.away_goals; a.gc += m.home_goals;
-      if (m.home_goals > m.away_goals) { h.g++; a.p++; h.pts += 3; }
-      else if (m.away_goals > m.home_goals) { a.g++; h.p++; a.pts += 3; }
-      else { h.e++; a.e++; h.pts++; a.pts++; }
+  // 2) Fallback BFS para partidos aún sin letra: agrupar por equipos que se han enfrentado.
+  if (unlabeled.length > 0) {
+    const adj = new Map();
+    for (const m of unlabeled) {
+      if (!adj.has(m.home_team)) adj.set(m.home_team, new Set());
+      if (!adj.has(m.away_team)) adj.set(m.away_team, new Set());
+      adj.get(m.home_team).add(m.away_team);
+      adj.get(m.away_team).add(m.home_team);
     }
-    const sorted = teams.map((t) => stats[t]).sort((x, y) =>
-      (y.pts - x.pts) || ((y.gf - y.gc) - (x.gf - x.gc)) || (y.gf - x.gf) || x.team.localeCompare(y.team)
-    );
-    return { teams: sorted, complete: teamSet.size === 4, played: played.length };
-  });
+    const visited = new Set();
+    const comps = [];
+    for (const team of adj.keys()) {
+      if (visited.has(team)) continue;
+      const comp = new Set();
+      const queue = [team];
+      while (queue.length) {
+        const t = queue.shift();
+        if (visited.has(t)) continue;
+        visited.add(t);
+        comp.add(t);
+        for (const n of adj.get(t) || []) if (!visited.has(n)) queue.push(n);
+      }
+      comps.push(comp);
+    }
+    for (const comp of comps) {
+      const ms = unlabeled.filter((x) => comp.has(x.home_team) && comp.has(x.away_team));
+      tables.push(tableFromMatches(comp, ms, '?', true));
+    }
+  }
 
-  tables.sort((g1, g2) => g1.teams[0].team.localeCompare(g2.teams[0].team));
-  return tables.map((t, i) => ({ ...t, label: String.fromCharCode(65 + i) }));
+  return tables;
 }
 
 function GroupStandings({ matches }) {
@@ -76,17 +95,20 @@ function GroupStandings({ matches }) {
       </div>
     );
   }
+  const hasProvisional = tables.some((g) => g.provisional);
   return (
     <div className="px-4 pt-3 space-y-4">
-      <p className="text-[11px] text-dim leading-relaxed">
-        Tabla derivada en directo del calendario. Las letras (A, B, …) son provisionales y se asignan por orden alfabético del primer equipo de cada grupo — sirve para distinguirlos visualmente, no son las letras oficiales de FIFA.
-      </p>
-      {tables.map((g) => (
-        <section key={g.label} className="ticket px-3 py-3">
+      {hasProvisional ? (
+        <p className="text-[11px] text-dim leading-relaxed">
+          Los grupos marcados con <span className="mono">?</span> aún no tienen letra oficial en la fuente. Se asignan letras reales en el próximo sync completo.
+        </p>
+      ) : null}
+      {tables.map((g, i) => (
+        <section key={`${g.label}-${i}`} className="ticket px-3 py-3">
           <div className="flex items-baseline justify-between mb-2 px-1">
             <h3 className="display text-base">Grupo {g.label}</h3>
             <span className="text-[10px] text-dim tracking-widest">
-              {g.played}/6 PARTIDOS{g.complete ? '' : ' · GRUPO INCOMPLETO'}
+              {g.played}/6 PARTIDOS{g.complete ? '' : ' · INCOMPLETO'}
             </span>
           </div>
           <div className="overflow-x-auto -mx-3 px-3">
@@ -293,6 +315,7 @@ function MatchCard({ match, mine, others, users, meId, onSaved }) {
 
       {open && !started ? <PredictionForm match={match} mine={mine} onSaved={(p) => onSaved(match.id, p)} /> : null}
       {open && started ? <RevealedPredictions match={match} others={others} users={users} meId={meId} /> : null}
+      {open ? <MatchExtras matchId={match.id} homeApiName={match.home_team} awayApiName={match.away_team} started={started} /> : null}
     </article>
   );
 }
