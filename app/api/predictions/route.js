@@ -24,7 +24,7 @@ export async function POST(req) {
 
   // Candado anti-trampas: el servidor comprueba el kickoff, no el navegador
   if (new Date(match.kickoff).getTime() <= Date.now()) {
-    return NextResponse.json({ error: 'El partido ya ha empezado: predicciones cerradas. 🔒' }, { status: 403 });
+    return NextResponse.json({ error: 'El partido ya ha empezado. Predicciones cerradas.' }, { status: 403 });
   }
 
   const corners = body.corners === null || body.corners === '' || body.corners === undefined

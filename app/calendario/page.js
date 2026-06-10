@@ -1,7 +1,9 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { api, fmtTime, fmtDayLong, dayKey, tournamentDay, TopBar, BottomNav, Stepper, Spinner, Avatar, Logout } from '@/components/ui';
+import { api, fmtTime, fmtDayLong, dayKey, tournamentDay, TopBar, BottomNav, Spinner, Avatar, Logout } from '@/components/ui';
+import { PredictionForm, SHORT_LABEL } from '@/components/match';
 import { teamName, teamFlag, stageES } from '@/lib/teams';
+import { scorePrediction } from '@/lib/scoring';
 
 const FINISHED = ['FT', 'AET', 'PEN'];
 
@@ -14,85 +16,11 @@ function Team({ name, align = 'left' }) {
   );
 }
 
-function CardsPick({ value, onChange, home, away }) {
-  const opts = [
-    { v: 'home', label: teamFlag(home), title: teamName(home) },
-    { v: 'draw', label: '=', title: 'Empate' },
-    { v: 'away', label: teamFlag(away), title: teamName(away) },
-  ];
-  return (
-    <div className="flex gap-2">
-      {opts.map((o) => (
-        <button
-          key={o.v}
-          type="button"
-          title={o.title}
-          className={`chip ${value === o.v ? 'chip-active' : ''}`}
-          onClick={() => onChange(value === o.v ? null : o.v)}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function PredictionForm({ match, mine, onSaved }) {
-  const [hg, setHg] = useState(mine?.home_goals ?? null);
-  const [ag, setAg] = useState(mine?.away_goals ?? null);
-  const [corners, setCorners] = useState(mine?.corners ?? null);
-  const [cards, setCards] = useState(mine?.more_cards ?? null);
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState('');
-
-  async function save() {
-    if (hg == null || ag == null) { setMsg('Indica el resultado.'); return; }
-    setSaving(true);
-    setMsg('');
-    try {
-      await api('/api/predictions', {
-        method: 'POST',
-        body: JSON.stringify({ match_id: match.id, home_goals: hg, away_goals: ag, corners, more_cards: cards }),
-      });
-      setMsg('Guardado.');
-      onSaved({ home_goals: hg, away_goals: ag, corners, more_cards: cards });
-    } catch (e) {
-      setMsg(e.message);
-    }
-    setSaving(false);
-  }
-
-  return (
-    <div className="mt-4 pt-4 border-t border-line space-y-4">
-      <div>
-        <div className="eyebrow mb-2">Resultado</div>
-        <div className="flex items-center justify-center gap-4">
-          <Stepper value={hg} onChange={setHg} />
-          <span className="mono text-lg text-dim">:</span>
-          <Stepper value={ag} onChange={setAg} />
-        </div>
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="eyebrow">Córners totales</span>
-        <Stepper value={corners} onChange={setCorners} max={40} />
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="eyebrow">Más tarjetas</span>
-        <CardsPick value={cards} onChange={setCards} home={match.home_team} away={match.away_team} />
-      </div>
-      <button className="btn-gold w-full" onClick={save} disabled={saving}>
-        {saving ? 'Guardando…' : mine ? 'Actualizar pronóstico' : 'Confirmar pronóstico'}
-      </button>
-      {msg ? <p className="text-center text-sm text-muted">{msg}</p> : null}
-      <p className="text-[11px] text-center text-dim">Editable hasta el inicio · {fmtTime(match.kickoff)}</p>
-    </div>
-  );
-}
-
 function RevealedPredictions({ match, others, users, meId }) {
   if (!others || others.length === 0) {
     return <p className="text-sm text-dim mt-3 text-center">Nadie envió pronóstico para este partido.</p>;
   }
+  const realKnown = match.home_goals != null && match.away_goals != null;
   return (
     <div className="mt-4 pt-3 border-t border-line space-y-1.5">
       <div className="eyebrow mb-1.5">Pronósticos de la mesa</div>
@@ -102,22 +30,35 @@ function RevealedPredictions({ match, others, users, meId }) {
         .map((p) => {
           const u = users.find((x) => x.id === p.user_id);
           const isMe = p.user_id === meId;
+          const live = realKnown ? scorePrediction(p, match) : { points: 0, detail: [] };
           return (
-            <div key={p.user_id} className={`flex items-center justify-between text-sm rounded px-3 py-2 ${isMe ? 'bg-[#1c1c1c]' : ''}`}>
-              <span className="flex items-center gap-2.5 min-w-0">
-                <Avatar name={u?.name} me={isMe} />
-                <span className="font-semibold truncate">{u?.name}</span>
-              </span>
-              <span className="flex items-center gap-3 shrink-0">
-                <span className="mono text-[15px] font-semibold">{p.home_goals}–{p.away_goals}</span>
-                {p.corners != null ? <span className="mono text-xs text-muted">c {p.corners}</span> : null}
-                {p.more_cards ? (
-                  <span className="text-xs text-muted">
-                    +T&nbsp;{p.more_cards === 'home' ? teamFlag(match.home_team) : p.more_cards === 'away' ? teamFlag(match.away_team) : '='}
-                  </span>
-                ) : null}
-                {p.scored ? <span className="badge-pts">+{p.points}</span> : null}
-              </span>
+            <div key={p.user_id} className={`rounded px-3 py-2 ${isMe ? 'bg-[#1c1c1c]' : ''}`}>
+              <div className="flex items-center justify-between text-sm gap-2">
+                <span className="flex items-center gap-2.5 min-w-0">
+                  <Avatar name={u?.name} me={isMe} />
+                  <span className="font-semibold truncate">{u?.name}</span>
+                </span>
+                <span className="flex items-center gap-3 shrink-0">
+                  <span className="mono text-[15px] font-semibold">{p.home_goals}–{p.away_goals}</span>
+                  {p.corners != null ? <span className="mono text-xs text-muted">c {p.corners}</span> : null}
+                  {p.more_cards ? (
+                    <span className="text-xs text-muted">
+                      +T&nbsp;{p.more_cards === 'home' ? teamFlag(match.home_team) : p.more_cards === 'away' ? teamFlag(match.away_team) : '='}
+                    </span>
+                  ) : null}
+                  {live.points > 0 ? <span className="badge-pts">+{live.points}</span> : null}
+                </span>
+              </div>
+              {realKnown && live.detail.length > 0 ? (
+                <div className="mt-1 ml-[38px] text-[10.5px] text-dim tracking-wide">
+                  {live.detail.map((d, i) => (
+                    <span key={i}>
+                      {i > 0 ? <span className="opacity-50"> · </span> : null}
+                      {SHORT_LABEL[d.label] || d.label} <span className="text-muted">+{d.pts}</span>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </div>
           );
         })}
@@ -164,6 +105,15 @@ function MatchCard({ match, mine, others, users, meId, onSaved }) {
             {!started && (mine
               ? <span className="text-[11px] font-semibold text-ok mono">{mine.home_goals}-{mine.away_goals}</span>
               : <span className="text-[11px] font-bold text-yellow tracking-wider">PRONOSTICAR</span>)}
+            {live && mine ? (() => {
+              const s = scorePrediction(mine, match);
+              return (
+                <span className="text-[11px] mono font-semibold flex items-center gap-1.5">
+                  <span className="text-dim">{mine.home_goals}-{mine.away_goals}</span>
+                  {s.points > 0 ? <span className="badge-pts">+{s.points}</span> : <span className="text-dim">·</span>}
+                </span>
+              );
+            })() : null}
             {done && mine?.scored ? <span className="badge-pts">+{mine.points}</span> : null}
             {done && match.stats_ready ? (
               <span className="text-[11px] text-dim mono">c{match.total_corners} · T{match.home_cards}-{match.away_cards}</span>
