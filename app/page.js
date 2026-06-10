@@ -8,12 +8,12 @@ export default async function Home() {
   if (!dbReady()) {
     return (
       <main className="min-h-dvh flex items-center justify-center p-6">
-        <div className="ticket p-8 max-w-md text-center">
-          <div className="text-5xl mb-4">🏗️</div>
-          <h1 className="display text-2xl text-gold mb-3">CASI LISTO</h1>
-          <p className="text-sm opacity-80 leading-relaxed">
-            Falta conectar la base de datos. Añade <b>SUPABASE_URL</b> y{' '}
-            <b>SUPABASE_SERVICE_KEY</b> en las variables de entorno de Vercel y redespliega.
+        <div className="ticket p-8 max-w-md w-full">
+          <div className="eyebrow mb-3">SETUP PENDIENTE</div>
+          <h1 className="display text-2xl mb-3">Base de datos no conectada</h1>
+          <p className="text-sm text-muted leading-relaxed">
+            Añade las variables <span className="mono text-ink">SUPABASE_URL</span> y{' '}
+            <span className="mono text-ink">SUPABASE_SERVICE_KEY</span> en Vercel y redespliega para activar la app.
           </p>
         </div>
       </main>

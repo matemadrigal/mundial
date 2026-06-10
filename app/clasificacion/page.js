@@ -1,8 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { api, TopBar, BottomNav, Spinner } from '@/components/ui';
-
-const MEDALS = ['🥇', '🥈', '🥉', '🪵'];
+import { api, TopBar, BottomNav, Spinner, Avatar, Logout } from '@/components/ui';
 
 export default function Clasificacion() {
   const [me, setMe] = useState(null);
@@ -15,68 +13,59 @@ export default function Clasificacion() {
         setMe(u.user);
         const d = await api('/api/leaderboard');
         setRows(d.rows);
-      } catch (e) {}
+      } catch {}
     })();
   }, []);
 
   if (!rows || !me) return <Spinner />;
 
-  const top = rows.slice(0, 3);
-  const podiumOrder = [top[1], top[0], top[2]].filter(Boolean);
-  const heights = { 0: 'h-20', 1: 'h-28', 2: 'h-16' };
   const leaderPts = rows[0]?.total || 0;
 
   return (
     <main className="pb-24 max-w-xl mx-auto">
-      <TopBar title="CLASIFICACIÓN" sub="El que gana se lleva el bote 💰" />
+      <TopBar title="Clasificación" sub="El ganador se lleva el bote" right={<Logout />} />
 
-      <div className="px-4">
-        {/* Podio */}
-        <div className="flex items-end justify-center gap-2 mt-4 mb-6">
-          {podiumOrder.map((r) => {
-            const realIdx = rows.indexOf(r);
-            return (
-              <div key={r.id} className="flex-1 max-w-[120px] text-center">
-                <div className="text-3xl mb-1">{r.emoji}</div>
-                <div className="text-xs font-bold truncate mb-1">{r.name}</div>
-                <div className={`podium-step ${heights[podiumOrder.indexOf(r)] || 'h-16'}`}>
-                  <span className="text-xl">{MEDALS[realIdx]}</span>
-                  <span className="score-digits text-2xl text-gold">{r.total}</span>
-                  <span className="text-[9px] uppercase tracking-widest opacity-50">pts</span>
+      <div className="px-4 pt-3 space-y-2">
+        {rows.map((r, i) => {
+          const isMe = r.id === me.id;
+          const isLeader = i === 0;
+          return (
+            <div
+              key={r.id}
+              className={`ticket px-4 py-3 ${isMe ? '!border-yellow' : ''}`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`mono text-base font-bold w-7 text-center ${isLeader ? 'text-yellow' : 'text-dim'}`}>
+                  {String(i + 1).padStart(2, '0')}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Tabla completa */}
-        <div className="space-y-2.5">
-          {rows.map((r, i) => (
-            <div key={r.id} className={`ticket px-4 py-3 ${r.id === me.id ? 'outline outline-1 outline-gold/40' : ''}`}>
-              <div className="flex items-center gap-3 pl-1">
-                <span className="text-lg w-7">{MEDALS[i] || i + 1}</span>
-                <span className="text-2xl">{r.emoji}</span>
+                <Avatar name={r.name} me={isMe} />
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate">{r.name} {r.id === me.id ? <span className="opacity-50 text-xs">(tú)</span> : null}</div>
-                  <div className="text-[11px] opacity-55">
-                    {r.played} predicciones puntuadas · {r.exacts} exactos 🎯
+                  <div className="font-bold truncate">
+                    {r.name}
+                    {isMe ? <span className="text-dim text-xs font-normal ml-1.5">(tú)</span> : null}
+                  </div>
+                  <div className="text-[11px] text-dim mt-0.5">
+                    {r.played} pron. puntuados · {r.exacts} exactos
                     {r.globalPoints > 0 ? ` · +${r.globalPoints} globales` : ''}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="score-digits text-2xl text-gold leading-none">{r.total}</div>
-                  {i > 0 ? <div className="text-[10px] opacity-45 mt-0.5">a {leaderPts - r.total} del líder</div> : <div className="text-[10px] text-gold/80 mt-0.5 font-bold">LÍDER</div>}
+                <div className="text-right shrink-0">
+                  <div className="score-digits text-2xl text-ink leading-none">{r.total}</div>
+                  <div className="text-[10px] mt-1">
+                    {isLeader
+                      ? <span className="text-yellow font-bold tracking-widest">LÍDER</span>
+                      : <span className="text-dim mono">−{leaderPts - r.total} pts</span>}
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        <p className="text-center text-[11px] opacity-40 mt-6 leading-relaxed">
-          Desempate: más resultados exactos. Los puntos de campeón y pichichi
-          entran cuando acabe el torneo.
-        </p>
+          );
+        })}
       </div>
+
+      <p className="text-center text-[11px] text-dim mt-6 px-6 leading-relaxed">
+        Desempate: más resultados exactos. Los puntos de campeón y pichichi se aplican al cierre del torneo.
+      </p>
 
       <BottomNav isAdmin={me.is_admin} />
     </main>

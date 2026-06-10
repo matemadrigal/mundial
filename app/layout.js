@@ -1,12 +1,12 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'La Porra Mundial · WC26',
-  description: 'La porra del Mundial 2026 entre amigos. Predicciones, puntos y bote.',
+  title: 'La Porra · WC26',
+  description: 'Porra del Mundial 2026.',
 };
 
 export const viewport = {
-  themeColor: '#092A21',
+  themeColor: '#0a0a0a',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Graduate&family=Outfit:wght@400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;700&display=swap"
           rel="stylesheet"
         />
       </head>

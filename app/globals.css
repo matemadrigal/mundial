@@ -3,174 +3,216 @@
 @tailwind utilities;
 
 :root {
-  --pitch: #0E3B2E;
-  --pitch-deep: #092A21;
-  --pitch-line: rgba(242, 237, 227, 0.08);
-  --chalk: #F2EDE3;
-  --chalk-dim: rgba(242, 237, 227, 0.55);
-  --gold: #E8B23A;
-  --clay: #D4573B;
-  --sage: #7FB6A4;
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-2: #1c1c1c;
+  --line: #262626;
+  --line-strong: #3a3a3a;
+  --ink: #fafafa;
+  --muted: #a3a3a3;
+  --dim: #737373;
+  --yellow: #ffdd00;
+  --yellow-dim: #d9bb00;
+  --yellow-ink: #0a0a0a;
+  --live: #ff3b30;
+  --ok: #1ea84c;
 }
+
+* { box-sizing: border-box; }
 
 html {
   -webkit-text-size-adjust: 100%;
+  background: var(--bg);
 }
 
 body {
-  background-color: var(--pitch-deep);
-  /* Césped segado bajo los focos: franjas verticales sutiles + viñeta */
-  background-image:
-    radial-gradient(120% 70% at 50% -10%, rgba(232, 178, 58, 0.10), transparent 60%),
-    repeating-linear-gradient(90deg, var(--pitch) 0px, var(--pitch) 56px, var(--pitch-deep) 56px, var(--pitch-deep) 112px);
-  background-attachment: fixed;
-  color: var(--chalk);
-  font-family: 'Outfit', system-ui, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
   min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* ---------- Tipografía de marcador ---------- */
+/* ---------- Tipografía ---------- */
 .display {
-  font-family: 'Graduate', serif;
-  letter-spacing: 0.04em;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
-
-.score-digits {
-  font-family: 'Graduate', serif;
+.mono {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
 }
+.score-digits {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
 
-/* ---------- Ticket de estadio (tarjeta firma) ---------- */
+/* ---------- Cards (antes "ticket") ---------- */
 .ticket {
-  position: relative;
-  background: linear-gradient(160deg, rgba(242, 237, 227, 0.07), rgba(242, 237, 227, 0.02));
-  border: 1px solid rgba(242, 237, 227, 0.14);
-  border-radius: 14px;
-  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
-  backdrop-filter: blur(6px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.ticket-live {
+  border-color: var(--live);
+  box-shadow: inset 3px 0 0 var(--live);
+}
+.ticket-done {
+  background: var(--surface);
+  opacity: 0.7;
 }
 
-.ticket::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-  width: 3px;
-  background: var(--gold);
-  opacity: 0.85;
-}
-
-.ticket-live::before { background: var(--clay); animation: pulse-bar 1.6s ease-in-out infinite; }
-.ticket-done::before { background: var(--sage); opacity: 0.5; }
-
-@keyframes pulse-bar {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-
-/* ---------- Chips y badges ---------- */
+/* ---------- Chips (tabs Bet365: flat, sin radius) ---------- */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(242, 237, 227, 0.2);
+  padding: 8px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--surface);
   font-size: 13px;
-  font-weight: 500;
-  color: var(--chalk);
-  background: transparent;
-  transition: all 0.15s ease;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+  cursor: pointer;
 }
-
+.chip:hover { color: var(--ink); border-color: var(--line-strong); }
 .chip-active {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: #2A1F08;
-  font-weight: 700;
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--yellow-ink);
 }
 
+/* ---------- Badges ---------- */
 .badge-live {
-  background: var(--clay);
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  color: var(--live);
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 3px 9px;
-  border-radius: 999px;
-  animation: pulse-bar 1.6s ease-in-out infinite;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.badge-live::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--live);
+  animation: live-blink 1.2s ease-in-out infinite;
+}
+@keyframes live-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
 
 .badge-pts {
-  background: rgba(232, 178, 58, 0.16);
-  border: 1px solid rgba(232, 178, 58, 0.5);
-  color: var(--gold);
-  font-weight: 800;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  background: var(--yellow);
+  color: var(--yellow-ink);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: -0.01em;
 }
 
 /* ---------- Botones ---------- */
 .btn-gold {
-  background: var(--gold);
-  color: #2A1F08;
-  font-weight: 800;
-  border-radius: 10px;
+  background: var(--yellow);
+  color: var(--yellow-ink);
+  font-weight: 700;
+  border-radius: 4px;
   padding: 12px 18px;
-  letter-spacing: 0.02em;
-  transition: transform 0.1s ease, filter 0.15s ease;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  font-size: 13px;
+  transition: background 0.12s ease;
+  cursor: pointer;
 }
-.btn-gold:active { transform: scale(0.97); }
-.btn-gold:disabled { opacity: 0.45; }
+.btn-gold:hover:not(:disabled) { background: #ffe833; }
+.btn-gold:active { background: var(--yellow-dim); }
+.btn-gold:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-ghost {
-  border: 1px solid rgba(242, 237, 227, 0.25);
-  color: var(--chalk);
-  border-radius: 10px;
-  padding: 10px 16px;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  border-radius: 4px;
+  padding: 11px 17px;
   font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
 }
+.btn-ghost:hover { background: var(--surface-2); border-color: var(--muted); }
 
-/* ---------- Stepper de goles/córners ---------- */
+/* ---------- Stepper ---------- */
 .stepper {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  border: 1px solid rgba(242, 237, 227, 0.22);
-  border-radius: 10px;
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
   overflow: hidden;
-  background: rgba(9, 42, 33, 0.6);
+  background: var(--surface-2);
 }
 .stepper button {
-  width: 40px;
-  height: 44px;
-  font-size: 20px;
+  width: 38px;
+  height: 40px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--yellow);
+  background: transparent;
+  transition: background 0.1s ease;
 }
-.stepper button:active { background: rgba(232, 178, 58, 0.15); }
+.stepper button:hover { background: var(--surface); }
+.stepper button:active { background: rgba(255,221,0,0.12); }
 .stepper .val {
   width: 44px;
-  text-align: center;
-  font-family: 'Graduate', serif;
-  font-size: 20px;
-  color: var(--chalk);
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
 }
 
 /* ---------- Inputs ---------- */
 .input {
   width: 100%;
-  background: rgba(9, 42, 33, 0.7);
-  border: 1px solid rgba(242, 237, 227, 0.22);
-  border-radius: 10px;
-  padding: 12px 14px;
-  color: var(--chalk);
-  font-size: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 11px 13px;
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+  transition: border-color 0.12s ease;
 }
-.input:focus { outline: 2px solid var(--gold); outline-offset: 1px; border-color: transparent; }
-select.input { appearance: none; }
+.input::placeholder { color: var(--dim); }
+.input:focus {
+  outline: none;
+  border-color: var(--yellow);
+}
+select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
 
 /* ---------- Nav inferior ---------- */
 .bottom-nav {
@@ -179,55 +221,112 @@ select.input { appearance: none; }
   left: 0;
   right: 0;
   z-index: 50;
-  background: rgba(9, 42, 33, 0.92);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(242, 237, 227, 0.12);
+  background: #050505;
+  border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
 }
 .bottom-nav a {
   flex: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 10px 0 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--chalk-dim);
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 0 9px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  transition: color 0.12s ease;
+  text-decoration: none;
 }
-.bottom-nav a.active { color: var(--gold); }
-.bottom-nav a.active .ico { transform: translateY(-1px); }
-.bottom-nav .ico { font-size: 20px; transition: transform 0.15s ease; }
+.bottom-nav a:hover { color: var(--muted); }
+.bottom-nav a.active {
+  color: var(--yellow);
+}
+.bottom-nav a.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 14%; right: 14%;
+  height: 2px;
+  background: var(--yellow);
+}
+.bottom-nav .ico { display: flex; align-items: center; justify-content: center; }
+.bottom-nav .ico svg { width: 20px; height: 20px; }
 
-/* ---------- Cabecera de día (separador con línea de cal) ---------- */
+/* ---------- Separador de día ---------- */
 .day-rule {
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 22px 0 10px;
 }
+.day-rule h2 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 .day-rule::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: repeating-linear-gradient(90deg, rgba(242,237,227,0.35) 0 8px, transparent 8px 16px);
+  background: var(--line);
 }
 
-/* ---------- Podio ---------- */
-.podium-step {
-  border-radius: 12px 12px 0 0;
-  background: linear-gradient(180deg, rgba(242, 237, 227, 0.12), rgba(242, 237, 227, 0.03));
-  border: 1px solid rgba(242, 237, 227, 0.15);
-  border-bottom: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 10px 4px 12px;
+/* ---------- Brand / título sección ---------- */
+.brand {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* ---------- Avatar circular (sustituye al emoji por jugador) ---------- */
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.avatar-me {
+  background: var(--yellow);
+  color: var(--yellow-ink);
+  border-color: var(--yellow);
+}
+
+/* ---------- Utilidades ---------- */
+.divider { height: 1px; background: var(--line); }
+.text-muted { color: var(--muted); }
+.text-dim { color: var(--dim); }
+.text-yellow { color: var(--yellow); }
+.text-live { color: var(--live); }
+.text-ok { color: var(--ok); }
+
+/* Scrollbar oculta en chips horizontal */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Accesibilidad */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
-:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }

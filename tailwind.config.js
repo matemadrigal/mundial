@@ -4,16 +4,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        pitch: '#0E3B2E',
-        pitchdeep: '#092A21',
-        chalk: '#F2EDE3',
-        gold: '#E8B23A',
-        clay: '#D4573B',
-        sage: '#7FB6A4'
+        bg: '#0a0a0a',
+        surface: '#141414',
+        surface2: '#1c1c1c',
+        line: '#262626',
+        ink: '#fafafa',
+        muted: '#a3a3a3',
+        dim: '#737373',
+        yellow: '#ffdd00',
+        yellowdim: '#d9bb00',
+        live: '#ff3b30',
+        ok: '#1ea84c'
       },
       fontFamily: {
-        display: ['Graduate', 'serif'],
-        body: ['Outfit', 'sans-serif']
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace']
       }
     }
   },

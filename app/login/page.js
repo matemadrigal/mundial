@@ -24,40 +24,38 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-dvh flex flex-col items-center justify-center px-6 pb-20">
-      <div className="text-center mb-10">
-        <div className="text-6xl mb-4">🏆</div>
-        <h1 className="display text-4xl text-gold leading-tight">
-          LA PORRA<br />MUNDIAL
-        </h1>
-        <p className="mt-3 text-sm tracking-[0.3em] opacity-60 font-semibold">
-          MEX · USA · CAN — 2026
-        </p>
-      </div>
+    <main className="min-h-dvh flex flex-col items-center justify-center px-6">
+      <div className="w-full max-w-sm">
+        <div className="mb-10">
+          <div className="eyebrow mb-2">CASA DE APUESTAS PRIVADA</div>
+          <h1 className="brand text-4xl leading-[0.95] mb-1">LA PORRA</h1>
+          <h2 className="brand text-4xl text-yellow leading-[0.95]">WC26</h2>
+          <p className="mono text-xs text-dim mt-4 tracking-widest">MEX · USA · CAN — 11 JUN / 19 JUL</p>
+        </div>
 
-      <form onSubmit={submit} className="ticket w-full max-w-sm p-6">
-        <label className="block text-xs font-bold tracking-widest opacity-70 mb-2 uppercase">
-          Tu contraseña secreta
-        </label>
-        <input
-          className="input"
-          type="password"
-          inputMode="text"
-          autoComplete="current-password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoFocus
-        />
-        {error ? <p className="text-sm mt-3" style={{ color: '#E8836B' }}>{error}</p> : null}
-        <button className="btn-gold w-full mt-4" disabled={loading}>
-          {loading ? 'Entrando…' : 'Saltar al campo →'}
-        </button>
-        <p className="text-[11px] opacity-50 mt-4 text-center leading-relaxed">
-          Cada jugador tiene su contraseña única e intransferible.
-          Quien la comparte, paga la primera ronda.
-        </p>
-      </form>
+        <form onSubmit={submit} className="ticket p-6">
+          <label className="eyebrow block mb-2">Contraseña personal</label>
+          <input
+            className="input mono"
+            type="password"
+            inputMode="text"
+            autoComplete="current-password"
+            placeholder="• • • • • • • •"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoFocus
+          />
+          {error ? (
+            <p className="text-sm text-live mt-3" role="alert">{error}</p>
+          ) : null}
+          <button className="btn-gold w-full mt-4" disabled={loading}>
+            {loading ? 'Verificando…' : 'Entrar'}
+          </button>
+          <p className="text-[11px] text-dim mt-5 leading-relaxed">
+            Acceso restringido a los 4 jugadores autorizados. Cada cuenta tiene una contraseña única.
+          </p>
+        </form>
+      </div>
     </main>
   );
 }
