@@ -7,6 +7,126 @@ import { scorePrediction } from '@/lib/scoring';
 
 const FINISHED = ['FT', 'AET', 'PEN'];
 
+function buildGroupTables(matches) {
+  const groupMatches = (matches || []).filter((m) =>
+    /group|jornada/i.test(m.stage || '') && m.home_team && m.away_team
+  );
+  if (groupMatches.length === 0) return [];
+
+  // Grafo de equipos que se han enfrentado en fase de grupos
+  const adj = new Map();
+  for (const m of groupMatches) {
+    if (!adj.has(m.home_team)) adj.set(m.home_team, new Set());
+    if (!adj.has(m.away_team)) adj.set(m.away_team, new Set());
+    adj.get(m.home_team).add(m.away_team);
+    adj.get(m.away_team).add(m.home_team);
+  }
+
+  // Componentes conexas: cada una es un grupo
+  const visited = new Set();
+  const groups = [];
+  for (const team of adj.keys()) {
+    if (visited.has(team)) continue;
+    const comp = new Set();
+    const queue = [team];
+    while (queue.length) {
+      const t = queue.shift();
+      if (visited.has(t)) continue;
+      visited.add(t);
+      comp.add(t);
+      for (const n of adj.get(t) || []) if (!visited.has(n)) queue.push(n);
+    }
+    groups.push(comp);
+  }
+
+  // Calcular tabla por grupo
+  const tables = groups.map((teamSet) => {
+    const teams = Array.from(teamSet);
+    const stats = Object.fromEntries(teams.map((t) => [t, { team: t, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, pts: 0 }]));
+    const played = groupMatches.filter((m) =>
+      teamSet.has(m.home_team) && teamSet.has(m.away_team) && m.home_goals != null && m.away_goals != null
+    );
+    for (const m of played) {
+      const h = stats[m.home_team];
+      const a = stats[m.away_team];
+      h.pj++; a.pj++;
+      h.gf += m.home_goals; h.gc += m.away_goals;
+      a.gf += m.away_goals; a.gc += m.home_goals;
+      if (m.home_goals > m.away_goals) { h.g++; a.p++; h.pts += 3; }
+      else if (m.away_goals > m.home_goals) { a.g++; h.p++; a.pts += 3; }
+      else { h.e++; a.e++; h.pts++; a.pts++; }
+    }
+    const sorted = teams.map((t) => stats[t]).sort((x, y) =>
+      (y.pts - x.pts) || ((y.gf - y.gc) - (x.gf - x.gc)) || (y.gf - x.gf) || x.team.localeCompare(y.team)
+    );
+    return { teams: sorted, complete: teamSet.size === 4, played: played.length };
+  });
+
+  tables.sort((g1, g2) => g1.teams[0].team.localeCompare(g2.teams[0].team));
+  return tables.map((t, i) => ({ ...t, label: String.fromCharCode(65 + i) }));
+}
+
+function GroupStandings({ matches }) {
+  const tables = useMemo(() => buildGroupTables(matches), [matches]);
+  if (tables.length === 0) {
+    return (
+      <div className="ticket mx-4 mt-3 p-6 text-center">
+        <div className="eyebrow mb-2">EN ESPERA</div>
+        <p className="text-sm text-muted">Las tablas se rellenarán cuando empiecen los partidos de fase de grupos.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="px-4 pt-3 space-y-4">
+      <p className="text-[11px] text-dim leading-relaxed">
+        Tabla derivada en directo del calendario. Las letras (A, B, …) son provisionales y se asignan por orden alfabético del primer equipo de cada grupo — sirve para distinguirlos visualmente, no son las letras oficiales de FIFA.
+      </p>
+      {tables.map((g) => (
+        <section key={g.label} className="ticket px-3 py-3">
+          <div className="flex items-baseline justify-between mb-2 px-1">
+            <h3 className="display text-base">Grupo {g.label}</h3>
+            <span className="text-[10px] text-dim tracking-widest">
+              {g.played}/6 PARTIDOS{g.complete ? '' : ' · GRUPO INCOMPLETO'}
+            </span>
+          </div>
+          <div className="overflow-x-auto -mx-3 px-3">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="eyebrow text-left">
+                  <th className="font-normal pb-1.5 pl-1">#</th>
+                  <th className="font-normal pb-1.5">Equipo</th>
+                  <th className="font-normal pb-1.5 text-center">PJ</th>
+                  <th className="font-normal pb-1.5 text-center">G</th>
+                  <th className="font-normal pb-1.5 text-center">E</th>
+                  <th className="font-normal pb-1.5 text-center">P</th>
+                  <th className="font-normal pb-1.5 text-center">GF</th>
+                  <th className="font-normal pb-1.5 text-center">GC</th>
+                  <th className="font-normal pb-1.5 text-center pr-1">PTS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {g.teams.map((t, i) => (
+                  <tr key={t.team} className="border-t border-line">
+                    <td className="py-2 pl-1 mono text-dim">{i + 1}</td>
+                    <td className="py-2"><span className="mr-1.5">{teamFlag(t.team)}</span>{teamName(t.team)}</td>
+                    <td className="py-2 text-center mono text-muted">{t.pj}</td>
+                    <td className="py-2 text-center mono">{t.g}</td>
+                    <td className="py-2 text-center mono">{t.e}</td>
+                    <td className="py-2 text-center mono">{t.p}</td>
+                    <td className="py-2 text-center mono text-muted">{t.gf}</td>
+                    <td className="py-2 text-center mono text-muted">{t.gc}</td>
+                    <td className="py-2 text-center mono font-bold text-yellow pr-1">{t.pts}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
 function TodaySummary({ data }) {
   const today = dayKey(new Date().toISOString());
   const finishedToday = (data.matches || []).filter((m) =>
@@ -240,14 +360,16 @@ export default function Calendario() {
       />
 
       <div className="px-4 pt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-        {[['today', 'Hoy'], ['upcoming', 'Próximos'], ['finished', 'Jugados'], ['all', 'Todos']].map(([v, l]) => (
+        {[['today', 'Hoy'], ['upcoming', 'Próximos'], ['finished', 'Jugados'], ['all', 'Todos'], ['groups', 'Grupos']].map(([v, l]) => (
           <button key={v} className={`chip shrink-0 ${filter === v ? 'chip-active' : ''}`} onClick={() => setFilter(v)}>{l}</button>
         ))}
       </div>
 
       {filter === 'today' ? <TodaySummary data={data} /> : null}
 
-      {empty ? (
+      {filter === 'groups' ? (
+        <GroupStandings matches={data.matches} />
+      ) : empty ? (
         <div className="ticket m-4 p-6">
           <div className="eyebrow mb-2">SIN DATOS</div>
           <h2 className="display text-lg mb-2">No hay partidos cargados</h2>
