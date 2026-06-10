@@ -1,0 +1,233 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --pitch: #0E3B2E;
+  --pitch-deep: #092A21;
+  --pitch-line: rgba(242, 237, 227, 0.08);
+  --chalk: #F2EDE3;
+  --chalk-dim: rgba(242, 237, 227, 0.55);
+  --gold: #E8B23A;
+  --clay: #D4573B;
+  --sage: #7FB6A4;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--pitch-deep);
+  /* Césped segado bajo los focos: franjas verticales sutiles + viñeta */
+  background-image:
+    radial-gradient(120% 70% at 50% -10%, rgba(232, 178, 58, 0.10), transparent 60%),
+    repeating-linear-gradient(90deg, var(--pitch) 0px, var(--pitch) 56px, var(--pitch-deep) 56px, var(--pitch-deep) 112px);
+  background-attachment: fixed;
+  color: var(--chalk);
+  font-family: 'Outfit', system-ui, sans-serif;
+  min-height: 100dvh;
+}
+
+/* ---------- Tipografía de marcador ---------- */
+.display {
+  font-family: 'Graduate', serif;
+  letter-spacing: 0.04em;
+}
+
+.score-digits {
+  font-family: 'Graduate', serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Ticket de estadio (tarjeta firma) ---------- */
+.ticket {
+  position: relative;
+  background: linear-gradient(160deg, rgba(242, 237, 227, 0.07), rgba(242, 237, 227, 0.02));
+  border: 1px solid rgba(242, 237, 227, 0.14);
+  border-radius: 14px;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  backdrop-filter: blur(6px);
+}
+
+.ticket::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  background: var(--gold);
+  opacity: 0.85;
+}
+
+.ticket-live::before { background: var(--clay); animation: pulse-bar 1.6s ease-in-out infinite; }
+.ticket-done::before { background: var(--sage); opacity: 0.5; }
+
+@keyframes pulse-bar {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ---------- Chips y badges ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 237, 227, 0.2);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--chalk);
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.chip-active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #2A1F08;
+  font-weight: 700;
+}
+
+.badge-live {
+  background: var(--clay);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  animation: pulse-bar 1.6s ease-in-out infinite;
+}
+
+.badge-pts {
+  background: rgba(232, 178, 58, 0.16);
+  border: 1px solid rgba(232, 178, 58, 0.5);
+  color: var(--gold);
+  font-weight: 800;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+/* ---------- Botones ---------- */
+.btn-gold {
+  background: var(--gold);
+  color: #2A1F08;
+  font-weight: 800;
+  border-radius: 10px;
+  padding: 12px 18px;
+  letter-spacing: 0.02em;
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+.btn-gold:active { transform: scale(0.97); }
+.btn-gold:disabled { opacity: 0.45; }
+
+.btn-ghost {
+  border: 1px solid rgba(242, 237, 227, 0.25);
+  color: var(--chalk);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+}
+
+/* ---------- Stepper de goles/córners ---------- */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid rgba(242, 237, 227, 0.22);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(9, 42, 33, 0.6);
+}
+.stepper button {
+  width: 40px;
+  height: 44px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.stepper button:active { background: rgba(232, 178, 58, 0.15); }
+.stepper .val {
+  width: 44px;
+  text-align: center;
+  font-family: 'Graduate', serif;
+  font-size: 20px;
+  color: var(--chalk);
+}
+
+/* ---------- Inputs ---------- */
+.input {
+  width: 100%;
+  background: rgba(9, 42, 33, 0.7);
+  border: 1px solid rgba(242, 237, 227, 0.22);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--chalk);
+  font-size: 16px;
+}
+.input:focus { outline: 2px solid var(--gold); outline-offset: 1px; border-color: transparent; }
+select.input { appearance: none; }
+
+/* ---------- Nav inferior ---------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(9, 42, 33, 0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(242, 237, 227, 0.12);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottom-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--chalk-dim);
+}
+.bottom-nav a.active { color: var(--gold); }
+.bottom-nav a.active .ico { transform: translateY(-1px); }
+.bottom-nav .ico { font-size: 20px; transition: transform 0.15s ease; }
+
+/* ---------- Cabecera de día (separador con línea de cal) ---------- */
+.day-rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 10px;
+}
+.day-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, rgba(242,237,227,0.35) 0 8px, transparent 8px 16px);
+}
+
+/* ---------- Podio ---------- */
+.podium-step {
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(180deg, rgba(242, 237, 227, 0.12), rgba(242, 237, 227, 0.03));
+  border: 1px solid rgba(242, 237, 227, 0.15);
+  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 10px 4px 12px;
+}
+
+/* Accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
