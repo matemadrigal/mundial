@@ -8,6 +8,8 @@ import { scorePrediction } from '@/lib/scoring';
 const FINISHED = ['FT', 'AET', 'PEN'];
 
 // ===== Tabla de grupos =====
+const ALL_GROUP_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+
 function tableFromMatches(teamSet, matchesIn, label, provisional) {
   const teams = Array.from(teamSet);
   const stats = Object.fromEntries(teams.map((t) => [t, { team: t, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, pts: 0 }]));
@@ -24,6 +26,10 @@ function tableFromMatches(teamSet, matchesIn, label, provisional) {
   const sorted = teams.map((t) => stats[t]).sort((x, y) =>
     (y.pts - x.pts) || ((y.gf - y.gc) - (x.gf - x.gc)) || (y.gf - x.gf) || x.team.localeCompare(y.team)
   );
+  // Rellena hasta 4 ranuras con placeholders "Por confirmar".
+  while (sorted.length < 4) {
+    sorted.push({ team: null, pj: null, g: null, e: null, p: null, gf: null, gc: null, pts: null, placeholder: true });
+  }
   return { teams: sorted, complete: teamSet.size === 4, played: matchesIn.length, label, provisional };
 }
 
@@ -31,9 +37,8 @@ function buildGroupTables(matches) {
   const groupMatches = (matches || []).filter((m) =>
     /group|jornada|fase de grupos/i.test(m.stage || '') && m.home_team && m.away_team
   );
-  if (groupMatches.length === 0) return [];
 
-  // 1) Por letra real
+  // 1) Por letra real (A-L)
   const byLetter = new Map();
   const unlabeled = [];
   for (const m of groupMatches) {
@@ -46,14 +51,20 @@ function buildGroupTables(matches) {
     }
   }
 
+  // 2) Construir SIEMPRE 12 grupos (A-L), aunque la API aún no haya
+  //    publicado los partidos de la jornada — los huecos salen como
+  //    "Por confirmar" para que el esqueleto del Mundial esté completo
+  //    desde el primer día.
   const tables = [];
-  for (const [letter, ms] of Array.from(byLetter.entries()).sort(([a], [b]) => a.localeCompare(b))) {
+  for (const letter of ALL_GROUP_LETTERS) {
+    const ms = byLetter.get(letter) || [];
     const teamSet = new Set();
     for (const m of ms) { teamSet.add(m.home_team); teamSet.add(m.away_team); }
     tables.push(tableFromMatches(teamSet, ms, letter, false));
   }
 
-  // 2) Fallback BFS para matches sin letra
+  // 3) Fallback BFS para partidos sin letra (raros: enriquecimiento
+  //    aún no corrido). Aparecen como "Grupo ?" debajo de A-L.
   if (unlabeled.length > 0) {
     const adj = new Map();
     for (const m of unlabeled) {
@@ -88,69 +99,91 @@ function buildGroupTables(matches) {
 
 function GroupStandings({ matches }) {
   const tables = useMemo(() => buildGroupTables(matches), [matches]);
-  if (tables.length === 0) {
-    return (
-      <div className="card mx-4 mt-3 p-6 text-center">
-        <div className="eyebrow mb-2">EN ESPERA</div>
-        <p className="text-sm text-muted">Las tablas se rellenarán cuando empiecen los partidos de fase de grupos.</p>
-      </div>
-    );
-  }
   const hasProvisional = tables.some((g) => g.provisional);
+  const incomplete = tables.filter((g) => !g.provisional && g.teams.some((t) => t.placeholder)).length;
   return (
     <div className="px-4 pt-3 space-y-3">
+      {incomplete > 0 ? (
+        <p className="text-[11px] text-dim2 leading-relaxed">
+          Algunos equipos aparecen como <span className="font-display">Por confirmar</span> porque la fuente de datos
+          aún no ha publicado todos los cruces. Se rellenan automáticamente conforme la API libere las jornadas restantes.
+        </p>
+      ) : null}
       {hasProvisional ? (
         <p className="text-[11px] text-dim2 leading-relaxed">
           Grupos sin letra (<span className="font-display">?</span>) se enriquecen al ejecutar "Sync completo" desde Admin.
         </p>
       ) : null}
-      {tables.map((g, i) => (
-        <section key={`${g.label}-${i}`} className="card overflow-hidden">
-          <div className="flex items-baseline justify-between px-4 pt-3 pb-2">
-            <h3 className="display text-base">Grupo {g.label}</h3>
-            <span className="text-[10px] text-dim2 font-bold tracking-widest">
-              {g.teams.length}/4 EQUIPOS · {g.played} PJ
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="eyebrow text-left">
-                  <th className="font-normal pb-1.5 pl-4">#</th>
-                  <th className="font-normal pb-1.5">Equipo</th>
-                  <th className="font-normal pb-1.5 text-center">PJ</th>
-                  <th className="font-normal pb-1.5 text-center">G</th>
-                  <th className="font-normal pb-1.5 text-center">E</th>
-                  <th className="font-normal pb-1.5 text-center">P</th>
-                  <th className="font-normal pb-1.5 text-center">GF</th>
-                  <th className="font-normal pb-1.5 text-center">GC</th>
-                  <th className="font-normal pb-1.5 text-center pr-4">PTS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {g.teams.map((t, idx) => (
-                  <tr key={t.team} className="border-t border-line2">
-                    <td className="py-2.5 pl-4 font-display font-bold text-dim2">{idx + 1}</td>
-                    <td className="py-2.5">
-                      <span className="flex items-center gap-2 min-w-0">
-                        <Flag apiName={t.team} size="xs" />
-                        <span className="truncate">{teamName(t.team)}</span>
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-center font-display text-dim">{t.pj}</td>
-                    <td className="py-2.5 text-center font-display">{t.g}</td>
-                    <td className="py-2.5 text-center font-display">{t.e}</td>
-                    <td className="py-2.5 text-center font-display">{t.p}</td>
-                    <td className="py-2.5 text-center font-display text-dim">{t.gf}</td>
-                    <td className="py-2.5 text-center font-display text-dim">{t.gc}</td>
-                    <td className="py-2.5 text-center font-display font-black pr-4">{t.pts}</td>
+      {tables.map((g, i) => {
+        const knownCount = g.teams.filter((t) => !t.placeholder).length;
+        return (
+          <section key={`${g.label}-${i}`} className="card overflow-hidden">
+            <div className="flex items-baseline justify-between px-4 pt-3 pb-2">
+              <h3 className="display text-base">Grupo {g.label}</h3>
+              <span className="text-[10px] text-dim2 font-bold tracking-widest">
+                {knownCount}/4 EQUIPOS · {g.played} PJ
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="eyebrow text-left">
+                    <th className="font-normal pb-1.5 pl-4">#</th>
+                    <th className="font-normal pb-1.5">Equipo</th>
+                    <th className="font-normal pb-1.5 text-center">PJ</th>
+                    <th className="font-normal pb-1.5 text-center">G</th>
+                    <th className="font-normal pb-1.5 text-center">E</th>
+                    <th className="font-normal pb-1.5 text-center">P</th>
+                    <th className="font-normal pb-1.5 text-center">GF</th>
+                    <th className="font-normal pb-1.5 text-center">GC</th>
+                    <th className="font-normal pb-1.5 text-center pr-4">PTS</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ))}
+                </thead>
+                <tbody>
+                  {g.teams.map((t, idx) => (
+                    <tr key={t.team || `tbd-${g.label}-${idx}`} className="border-t border-line2">
+                      <td className="py-2.5 pl-4 font-display font-bold text-dim2">{idx + 1}</td>
+                      {t.placeholder ? (
+                        <>
+                          <td className="py-2.5">
+                            <span className="flex items-center gap-2 min-w-0">
+                              <span className="inline-flex items-center justify-center rounded-[3px] bg-line text-dim2 text-[10px] font-bold" style={{ width: 22, height: 14 }}>?</span>
+                              <span className="truncate text-dim2 italic">Por confirmar</span>
+                            </span>
+                          </td>
+                          <td className="py-2.5 text-center text-dim2">—</td>
+                          <td className="py-2.5 text-center text-dim2">—</td>
+                          <td className="py-2.5 text-center text-dim2">—</td>
+                          <td className="py-2.5 text-center text-dim2">—</td>
+                          <td className="py-2.5 text-center text-dim2">—</td>
+                          <td className="py-2.5 text-center text-dim2">—</td>
+                          <td className="py-2.5 text-center text-dim2 pr-4">—</td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="py-2.5">
+                            <span className="flex items-center gap-2 min-w-0">
+                              <Flag apiName={t.team} size="xs" />
+                              <span className="truncate">{teamName(t.team)}</span>
+                            </span>
+                          </td>
+                          <td className="py-2.5 text-center font-display text-dim">{t.pj}</td>
+                          <td className="py-2.5 text-center font-display">{t.g}</td>
+                          <td className="py-2.5 text-center font-display">{t.e}</td>
+                          <td className="py-2.5 text-center font-display">{t.p}</td>
+                          <td className="py-2.5 text-center font-display text-dim">{t.gf}</td>
+                          <td className="py-2.5 text-center font-display text-dim">{t.gc}</td>
+                          <td className="py-2.5 text-center font-display font-black pr-4">{t.pts}</td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
