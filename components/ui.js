@@ -112,6 +112,7 @@ function IcoFixtures(props) { return (<svg viewBox="0 0 24 24" fill="none" strok
 function IcoRanking(props) { return (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M6 20V10M12 20V4M18 20v-7"/></svg>); }
 function IcoProfile(props) { return (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="8" r="4"/><path d="M5 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>); }
 function IcoAdmin(props) { return (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 3l8 4v5c0 4.5-3.4 8.4-8 9-4.6-.6-8-4.5-8-9V7l8-4z"/><path d="M9.5 12l2 2 3.5-4"/></svg>); }
+function IcoPena(props) { return (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5"/><path d="M14 20c0-2.4 2.2-4 4-4s4 1.6 4 4"/></svg>); }
 function IcoLogout(props) { return (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg>); }
 
 export function Logout({ tone = 'light' }) {
@@ -131,7 +132,8 @@ export function Logout({ tone = 'light' }) {
 // ---------- Bottom Nav ----------
 const TABS = [
   { href: '/calendario', label: 'Partidos', Ico: IcoFixtures },
-  { href: '/predicciones', label: 'Apuestas', Ico: IcoHome },
+  { href: '/predicciones', label: 'Mis', Ico: IcoHome },
+  { href: '/pena', label: 'Peña', Ico: IcoPena },
   { href: '/clasificacion', label: 'Ranking', Ico: IcoRanking },
   { href: '/perfil', label: 'Perfil', Ico: IcoProfile }
 ];
